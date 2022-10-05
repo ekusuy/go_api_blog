@@ -50,6 +50,19 @@ func TestSelectArticleDetail(t *testing.T) {
 	}
 }
 
+// SelectArticleList関数のテスト
+func TestSelectArticleList(t *testing.T) {
+	expectedNum := len(testdata.ArticleTestData)
+	got, err := repositories.SelectArticleList(testDB, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if num := len(got); num != expectedNum {
+		t.Errorf("want %d but got %d articles\n", expectedNum, num)
+	}
+}
+
 func TestInsertArticle(t *testing.T) {
 	article := models.Article{
 		Title:    "insert",
