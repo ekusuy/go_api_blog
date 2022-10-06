@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/ekusuy/go_api_blog/controllers"
+	"github.com/ekusuy/go_api_blog/router"
 	"github.com/ekusuy/go_api_blog/services"
-	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 	"os"
@@ -29,14 +29,8 @@ func main() {
 
 	ser := services.NewMyAppService(db)
 	con := controllers.NewMyAppController(ser)
-	r := mux.NewRouter()
 
-	r.HandleFunc("/article", con.PostArticleHandler).Methods(http.MethodPost)
-	r.HandleFunc("/article/list", con.ArticleListHandler).Methods(http.MethodGet)
-	r.HandleFunc("/article/{id:[0-9]+}", con.ArticleDetailHandler).Methods(http.MethodGet)
-	r.HandleFunc("/article/nice", con.PostNiceHandler).Methods(http.MethodPost)
-	r.HandleFunc("/comment", con.PostCommentHandler).Methods(http.MethodPost)
-
+	r := router.NewRouter(con)
 	log.Println("server_start")
 	log.Fatal(http.ListenAndServe(":8080", r))
 }
