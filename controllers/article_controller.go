@@ -1,26 +1,29 @@
-package handlers
+package controllers
 
 import (
 	"encoding/json"
+	"github.com/ekusuy/go_api_blog/controllers/services"
 	"github.com/ekusuy/go_api_blog/models"
-	"github.com/ekusuy/go_api_blog/services"
 	"github.com/gorilla/mux"
-	"io"
 	"net/http"
 	"strconv"
 )
 
-func HelloHandler(w http.ResponseWriter, req *http.Request) {
-	io.WriteString(w, "Hello\n")
+type ArticleController struct {
+	service services.ArticleServicer
 }
 
-func PostArticleHandler(w http.ResponseWriter, req *http.Request) {
+func NewArticleController(s services.ArticleServicer) *ArticleController {
+	return &ArticleController{service: s}
+}
+
+func (c *ArticleController) PostArticleHandler(w http.ResponseWriter, req *http.Request) {
 	var reqArticle models.Article
 	if err := json.NewDecoder(req.Body).Decode(&reqArticle); err != nil {
 		http.Error(w, "fail to decode json\n", http.StatusBadRequest)
 	}
 
-	article, err := services.PostArticleService(reqArticle)
+	article, err := c.service.PostArticleService(reqArticle)
 	if err != nil {
 		http.Error(w, "fail internal exec\n", http.StatusInternalServerError)
 		return
@@ -29,7 +32,7 @@ func PostArticleHandler(w http.ResponseWriter, req *http.Request) {
 	json.NewEncoder(w).Encode(article)
 }
 
-func ArticleListHandler(w http.ResponseWriter, req *http.Request) {
+func (c *ArticleController) ArticleListHandler(w http.ResponseWriter, req *http.Request) {
 	queryMap := req.URL.Query()
 
 	var page int
@@ -44,7 +47,7 @@ func ArticleListHandler(w http.ResponseWriter, req *http.Request) {
 		page = 1
 	}
 
-	articleList, err := services.GetArticleListService(page)
+	articleList, err := c.service.GetArticleListService(page)
 	if err != nil {
 		http.Error(w, "fail internal exec\n", http.StatusInternalServerError)
 		return
@@ -53,14 +56,14 @@ func ArticleListHandler(w http.ResponseWriter, req *http.Request) {
 	json.NewEncoder(w).Encode(articleList)
 }
 
-func ArticleDetailHandler(w http.ResponseWriter, req *http.Request) {
+func (c *ArticleController) ArticleDetailHandler(w http.ResponseWriter, req *http.Request) {
 	articleID, err := strconv.Atoi(mux.Vars(req)["id"])
 	if err != nil {
 		http.Error(w, "Invalid query parameter", http.StatusBadRequest)
 		return
 	}
 
-	article, err := services.GetArticleService(articleID)
+	article, err := c.service.GetArticleService(articleID)
 	if err != nil {
 		http.Error(w, "fail internal exec\n", http.StatusInternalServerError)
 		return
@@ -68,30 +71,16 @@ func ArticleDetailHandler(w http.ResponseWriter, req *http.Request) {
 	json.NewEncoder(w).Encode(article)
 }
 
-func PostNiceHandler(w http.ResponseWriter, req *http.Request) {
+func (c *ArticleController) PostNiceHandler(w http.ResponseWriter, req *http.Request) {
 	var reqArticle models.Article
 	if err := json.NewDecoder(req.Body).Decode(&reqArticle); err != nil {
 		http.Error(w, "fail to decode json\n", http.StatusBadRequest)
 	}
 
-	article, err := services.PostNiceService(reqArticle)
+	article, err := c.service.PostNiceService(reqArticle)
 	if err != nil {
 		http.Error(w, "fail internal exec\n", http.StatusInternalServerError)
 		return
 	}
 	json.NewEncoder(w).Encode(article)
-}
-
-func PostCommentHandler(w http.ResponseWriter, req *http.Request) {
-	var reqComment models.Comment
-	if err := json.NewDecoder(req.Body).Decode(&reqComment); err != nil {
-		http.Error(w, "fail to decode json\n", http.StatusBadRequest)
-	}
-
-	comment, err := services.PostCommentService(reqComment)
-	if err != nil {
-		http.Error(w, "fail internal exec\n", http.StatusInternalServerError)
-		return
-	}
-	json.NewEncoder(w).Encode(comment)
 }
