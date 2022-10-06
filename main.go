@@ -3,9 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"github.com/ekusuy/go_api_blog/controllers"
-	"github.com/ekusuy/go_api_blog/router"
-	"github.com/ekusuy/go_api_blog/services"
+	"github.com/ekusuy/go_api_blog/api"
 	"log"
 	"net/http"
 	"os"
@@ -27,10 +25,8 @@ func main() {
 		return
 	}
 
-	ser := services.NewMyAppService(db)
-	con := controllers.NewMyAppController(ser)
+	r := api.NewRouter(db)
 
-	r := router.NewRouter(con)
 	log.Println("server_start")
 	log.Fatal(http.ListenAndServe(":8080", r))
 }
