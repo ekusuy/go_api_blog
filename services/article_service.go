@@ -6,20 +6,14 @@ import (
 	"github.com/ekusuy/go_api_blog/repositories"
 )
 
-func GetArticleService(articleID int) (models.Article, error) {
-	db, err := connectDB()
-	if err != nil {
-		return models.Article{}, err
-	}
-	defer db.Close()
-
+func (s *MyAppService) GetArticleService(articleID int) (models.Article, error) {
 	// repositories層の関数で取得
-	article, err := repositories.SelectArticleDetail(db, articleID)
+	article, err := repositories.SelectArticleDetail(s.db, articleID)
 	if err != nil {
 		return models.Article{}, err
 	}
 	// コメント取得
-	commentList, err := repositories.SelectCommentList(db, articleID)
+	commentList, err := repositories.SelectCommentList(s.db, articleID)
 	if err != nil {
 		return models.Article{}, err
 	}
@@ -53,7 +47,7 @@ func (s *MyAppService) GetArticleListService(page int) ([]models.Article, error)
 // PostNiceHandlerで使うことを想定したサービス
 // 指定 ID の記事のいいね数を+1 して、結果を返却
 func (s *MyAppService) PostNiceService(article models.Article) (models.Article, error) {
-	err = repositories.UpdateNiceNum(s.db, article.ID)
+	err := repositories.UpdateNiceNum(s.db, article.ID)
 	if err != nil {
 		fmt.Println(err)
 		return models.Article{}, err
