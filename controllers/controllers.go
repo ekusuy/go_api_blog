@@ -2,18 +2,18 @@ package controllers
 
 import (
 	"encoding/json"
+	"github.com/ekusuy/go_api_blog/controllers/services"
 	"github.com/ekusuy/go_api_blog/models"
-	"github.com/ekusuy/go_api_blog/services"
 	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
 )
 
 type MyAppController struct {
-	service *services.MyAppService
+	service services.MyAppServicer
 }
 
-func NewMyAppController(s *services.MyAppService) *MyAppController {
+func NewMyAppController(s services.MyAppServicer) *MyAppController {
 	return &MyAppController{service: s}
 }
 
