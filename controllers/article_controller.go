@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"github.com/ekusuy/go_api_blog/apperrors"
 	"github.com/ekusuy/go_api_blog/controllers/services"
 	"github.com/ekusuy/go_api_blog/models"
 	"github.com/gorilla/mux"
@@ -20,6 +21,7 @@ func NewArticleController(s services.ArticleServicer) *ArticleController {
 func (c *ArticleController) PostArticleHandler(w http.ResponseWriter, req *http.Request) {
 	var reqArticle models.Article
 	if err := json.NewDecoder(req.Body).Decode(&reqArticle); err != nil {
+		err = apperrors.ReqBodyDecodeFailed.Wrap(err, "bad request body")
 		http.Error(w, "fail to decode json\n", http.StatusBadRequest)
 	}
 
@@ -40,6 +42,7 @@ func (c *ArticleController) ArticleListHandler(w http.ResponseWriter, req *http.
 		var err error
 		page, err = strconv.Atoi(p[0])
 		if err != nil {
+			err = apperrors.BadParam.Wrap(err, "query param must be number")
 			http.Error(w, "invalid query parameter", http.StatusBadRequest)
 			return
 		}
@@ -59,6 +62,7 @@ func (c *ArticleController) ArticleListHandler(w http.ResponseWriter, req *http.
 func (c *ArticleController) ArticleDetailHandler(w http.ResponseWriter, req *http.Request) {
 	articleID, err := strconv.Atoi(mux.Vars(req)["id"])
 	if err != nil {
+		apperrors.BadParam.Wrap(err, "pathparam must be number")
 		http.Error(w, "Invalid query parameter", http.StatusBadRequest)
 		return
 	}
@@ -74,6 +78,7 @@ func (c *ArticleController) ArticleDetailHandler(w http.ResponseWriter, req *htt
 func (c *ArticleController) PostNiceHandler(w http.ResponseWriter, req *http.Request) {
 	var reqArticle models.Article
 	if err := json.NewDecoder(req.Body).Decode(&reqArticle); err != nil {
+		err = apperrors.ReqBodyDecodeFailed.Wrap(err, "bad request body")
 		http.Error(w, "fail to decode json\n", http.StatusBadRequest)
 	}
 
