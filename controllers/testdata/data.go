@@ -17,7 +17,7 @@ var articleTestData = []models.Article{
 		Contents: "Second blog post",
 		UserName: "saki",
 		NiceNum:  4,
-	}
+	},
 }
 
 var commentTestData = []models.Comment{
