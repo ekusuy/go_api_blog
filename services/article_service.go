@@ -7,23 +7,48 @@ import (
 	"github.com/ekusuy/go_api_blog/apperrors"
 	"github.com/ekusuy/go_api_blog/models"
 	"github.com/ekusuy/go_api_blog/repositories"
+	"sync"
 )
 
 func (s *MyAppService) GetArticleService(articleID int) (models.Article, error) {
-	// repositories層の関数で取得
-	article, err := repositories.SelectArticleDetail(s.db, articleID)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			err = apperrors.NAData.Wrap(err, "no data")
+	var article models.Article
+	var commentList []models.Comment
+	var articleGetErr, commentGetErr error
+
+	var amu sync.Mutex
+	var cmu sync.Mutex
+
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	go func(db *sql.DB, articleID int) {
+		defer wg.Done()
+		amu.Lock()
+		article, articleGetErr = repositories.SelectArticleDetail(db, articleID)
+		amu.Unlock()
+	}(s.db, articleID)
+
+	go func(db *sql.DB, articleID int) {
+		defer wg.Done()
+		cmu.Lock()
+		commentList, commentGetErr = repositories.SelectCommentList(db, articleID)
+		cmu.Unlock()
+	}(s.db, articleID)
+	// コメント取得
+
+	wg.Wait()
+
+	if articleGetErr != nil {
+		if errors.Is(articleGetErr, sql.ErrNoRows) {
+			err := apperrors.NAData.Wrap(articleGetErr, "no data")
 			return models.Article{}, err
 		}
-		err = apperrors.GetDataFailed.Wrap(err, "fail to get data")
+		err := apperrors.GetDataFailed.Wrap(articleGetErr, "fail to get data")
 		return models.Article{}, err
 	}
-	// コメント取得
-	commentList, err := repositories.SelectCommentList(s.db, articleID)
-	if err != nil {
-		err = apperrors.GetDataFailed.Wrap(err, "fail to get data")
+
+	if commentGetErr != nil {
+		err := apperrors.GetDataFailed.Wrap(commentGetErr, "fail to get data")
 		return models.Article{}, err
 	}
 
